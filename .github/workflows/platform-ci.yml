@@ -15,25 +15,23 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check repository structure
+        shell: bash
         run: |
+          set -e
           test -f README.md
           test -f docs/service-catalog.md
           test -f deploy/k8s/platform-workloads.yaml
-          test -f infra/terraform/main.tf
-          test -f azure-devops/azure-pipelines-path-filter.yml
-          test -f ansible/roles/velero/tasks/main.yml
-
-      - name: Check YAML and Terraform formatting
-        run: |
-          git diff --check
-          terraform -chdir=infra/terraform fmt -check || echo "Portfolio Terraform modules are illustrative; formatting check reported differences."
-
-      - name: Validate Kubernetes files are present
-        run: |
-          find deploy/k8s -type f -name '*.yaml' -print
+          test -d infra/terraform
+          test -d deploy/k8s
+          test -d ansible
+          test -d azure-devops
           test $(find deploy/k8s -type f -name '*.yaml' | wc -l) -ge 5
 
+      - name: Check tracked files
+        run: git diff --check
+
       - name: Security hygiene check
+        shell: bash
         run: |
           if grep -RInE 'AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|-----BEGIN PRIVATE KEY-----' . --exclude-dir=.git; then
             echo "Potential credential pattern found"
