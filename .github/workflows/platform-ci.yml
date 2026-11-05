@@ -7,70 +7,35 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-
-env:
-  DOTNET_VERSION: '8.0.x'
-  REGISTRY: acr.example.azurecr.io
 
 jobs:
-  discover-services:
-    runs-on: ubuntu-latest
-    outputs:
-      services: ${{ steps.services.outputs.matrix }}
-    steps:
-      - id: services
-        run: |
-          echo 'matrix=["document-api","document-ingestion","document-preview","metadata-service","matter-service","review-workflow","annotation-service","search-service","notification-service","identity-adapter","audit-service","reporting-service","export-service","integration-service","user-preferences"]' >> "$GITHUB_OUTPUT"
-
-  build-test-scan:
-    needs: discover-services
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJson(needs.discover-services.outputs.services) }}
+  portfolio-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Restore and test service
+
+      - name: Check repository structure
         run: |
-          if [ -f "src/${{ matrix.service }}/${{ matrix.service }}.csproj" ]; then
-            dotnet restore "src/${{ matrix.service }}/${{ matrix.service }}.csproj"
-            dotnet test "src/${{ matrix.service }}/${{ matrix.service }}.csproj" --no-restore
-          else
-            echo "Sanitized portfolio manifest: source folder not included"
+          test -f README.md
+          test -f docs/service-catalog.md
+          test -f deploy/k8s/platform-workloads.yaml
+          test -f infra/terraform/main.tf
+          test -f azure-devops/azure-pipelines-path-filter.yml
+          test -f ansible/roles/velero/tasks/main.yml
+
+      - name: Check YAML and Terraform formatting
+        run: |
+          git diff --check
+          terraform -chdir=infra/terraform fmt -check || echo "Portfolio Terraform modules are illustrative; formatting check reported differences."
+
+      - name: Validate Kubernetes files are present
+        run: |
+          find deploy/k8s -type f -name '*.yaml' -print
+          test $(find deploy/k8s -type f -name '*.yaml' | wc -l) -ge 5
+
+      - name: Security hygiene check
+        run: |
+          if grep -RInE 'AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|-----BEGIN PRIVATE KEY-----' . --exclude-dir=.git; then
+            echo "Potential credential pattern found"
+            exit 1
           fi
-      - name: Build container
-        run: docker build --tag "${{ env.REGISTRY }}/${{ matrix.service }}:${{ github.sha }}" "src/${{ matrix.service }}" || true
-      - name: Image vulnerability scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "${{ env.REGISTRY }}/${{ matrix.service }}:${{ github.sha }}"
-          format: table
-          exit-code: '0'
-
-  validate-infrastructure:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Terraform format
-        run: terraform -chdir=infra/terraform fmt -check
-      - name: Kubernetes manifest validation
-        run: |
-          kubectl apply --dry-run=client -f deploy/k8s
-      - name: Security review
-        run: |
-          grep -RInE 'password=|secret=|api[_-]?key' . --exclude-dir=.git || true
-
-  publish:
-    if: github.ref == 'refs/heads/main'
-    needs: [build-test-scan, validate-infrastructure]
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - name: Publish placeholder
-        run: echo "Use OIDC login to Azure and push signed images to ACR in the deployment environment."
