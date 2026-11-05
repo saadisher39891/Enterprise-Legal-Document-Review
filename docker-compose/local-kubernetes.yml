@@ -1,0 +1,16 @@
+services:
+  legal-review-api:
+    image: legal-review-api:local
+    ports:
+      - "8099:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: local-kubernetes
+      ASPNETCORE_URLS: http://+:8080
+    volumes:
+      - ./artifacts/logs:/app/logs
+      - ./artifacts/search:/app/search
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
