@@ -1,0 +1,26 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/document-api/*
+      - deploy/k8s/*
+      - infra/terraform/*
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildDotnetService
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+      clean: true
+    - task: UseDotNet@2
+      inputs:
+        packageType: sdk
+        version: 8.0.x
+    - script: dotnet restore
+    - script: dotnet test --configuration Release
+    - script: docker build -t $(ACR_LOGIN_SERVER)/document-api:$(Build.SourceVersion) .
