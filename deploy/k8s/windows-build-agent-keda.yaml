@@ -1,0 +1,29 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: ci-pipeline-auth
+  namespace: legal-platform
+spec:
+  secretTargetRef:
+    - parameter: personalAccessToken
+      name: ci-pipeline-secret
+      key: AZP_TOKEN
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: windows-build-agent
+  namespace: legal-platform
+spec:
+  scaleTargetRef:
+    name: windows-build-agent
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  cooldownPeriod: 180
+  triggers:
+    - type: azure-pipelines
+      metadata:
+        poolID: "legal-windows-pool"
+        organizationURLFromEnv: AZP_URL
+      authenticationRef:
+        name: ci-pipeline-auth
