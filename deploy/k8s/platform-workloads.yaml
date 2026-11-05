@@ -1,0 +1,730 @@
+# 15-service workload catalogue
+# Sanitized .NET 8 workload templates. Replace image tags and secrets per environment.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-api
+  namespace: legal-platform
+  labels:
+    app: document-api
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: document-api }
+  template:
+    metadata:
+      labels: { app: document-api, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: document-api
+          image: acr.example.azurecr.io/document-api:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-api
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: document-api }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-ingestion
+  namespace: legal-platform
+  labels:
+    app: document-ingestion
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: document-ingestion }
+  template:
+    metadata:
+      labels: { app: document-ingestion, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: document-ingestion
+          image: acr.example.azurecr.io/document-ingestion:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-ingestion
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: document-ingestion }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-preview
+  namespace: legal-platform
+  labels:
+    app: document-preview
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: document-preview }
+  template:
+    metadata:
+      labels: { app: document-preview, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: document-preview
+          image: acr.example.azurecr.io/document-preview:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-preview
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: document-preview }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metadata-service
+  namespace: legal-platform
+  labels:
+    app: metadata-service
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: metadata-service }
+  template:
+    metadata:
+      labels: { app: metadata-service, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: metadata-service
+          image: acr.example.azurecr.io/metadata-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metadata-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: metadata-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matter-service
+  namespace: legal-platform
+  labels:
+    app: matter-service
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: matter-service }
+  template:
+    metadata:
+      labels: { app: matter-service, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: matter-service
+          image: acr.example.azurecr.io/matter-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matter-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: matter-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-workflow
+  namespace: legal-platform
+  labels:
+    app: review-workflow
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: review-workflow }
+  template:
+    metadata:
+      labels: { app: review-workflow, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: review-workflow
+          image: acr.example.azurecr.io/review-workflow:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-workflow
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: review-workflow }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: annotation-service
+  namespace: legal-platform
+  labels:
+    app: annotation-service
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: annotation-service }
+  template:
+    metadata:
+      labels: { app: annotation-service, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: annotation-service
+          image: acr.example.azurecr.io/annotation-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: annotation-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: annotation-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-service
+  namespace: legal-platform
+  labels:
+    app: search-service
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: search-service }
+  template:
+    metadata:
+      labels: { app: search-service, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: search-service
+          image: acr.example.azurecr.io/search-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: search-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: legal-platform
+  labels:
+    app: notification-service
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: notification-service }
+  template:
+    metadata:
+      labels: { app: notification-service, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: notification-service
+          image: acr.example.azurecr.io/notification-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: notification-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-adapter
+  namespace: legal-platform
+  labels:
+    app: identity-adapter
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: identity-adapter }
+  template:
+    metadata:
+      labels: { app: identity-adapter, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: identity-adapter
+          image: acr.example.azurecr.io/identity-adapter:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-adapter
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: identity-adapter }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service
+  namespace: legal-platform
+  labels:
+    app: audit-service
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: audit-service }
+  template:
+    metadata:
+      labels: { app: audit-service, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: audit-service
+          image: acr.example.azurecr.io/audit-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: audit-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporting-service
+  namespace: legal-platform
+  labels:
+    app: reporting-service
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: reporting-service }
+  template:
+    metadata:
+      labels: { app: reporting-service, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: reporting-service
+          image: acr.example.azurecr.io/reporting-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reporting-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: reporting-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: export-service
+  namespace: legal-platform
+  labels:
+    app: export-service
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: export-service }
+  template:
+    metadata:
+      labels: { app: export-service, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: export-service
+          image: acr.example.azurecr.io/export-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: export-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: export-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: integration-service
+  namespace: legal-platform
+  labels:
+    app: integration-service
+    exposure: internal
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: integration-service }
+  template:
+    metadata:
+      labels: { app: integration-service, exposure: internal }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: integration-service
+          image: acr.example.azurecr.io/integration-service:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: integration-service
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: integration-service }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-preferences
+  namespace: legal-platform
+  labels:
+    app: user-preferences
+    exposure: external
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: user-preferences }
+  template:
+    metadata:
+      labels: { app: user-preferences, exposure: external }
+    spec:
+      serviceAccountName: legal-service
+      containers:
+        - name: user-preferences
+          image: acr.example.azurecr.io/user-preferences:1.0.0
+          ports: [{ containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: legal-platform-secrets } }]
+          readinessProbe:
+            httpGet: { path: /health/ready, port: 8080 }
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: 8080 }
+            initialDelaySeconds: 30
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-preferences
+  namespace: legal-platform
+spec:
+  type: ClusterIP
+  selector: { app: user-preferences }
+  ports: [{ name: http, port: 8080, targetPort: 8080 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: legal-platform
+spec:
+  serviceName: redis
+  replicas: 3
+  selector: { matchLabels: { app: redis } }
+  template:
+    metadata: { labels: { app: redis } }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports: [{containerPort: 6379}]
+          resources: { requests: {cpu: "100m", memory: "128Mi"}, limits: {cpu: "500m", memory: "512Mi"} }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: legal-platform
+spec:
+  serviceName: mongodb
+  replicas: 3
+  selector: { matchLabels: { app: mongodb } }
+  template:
+    metadata: { labels: { app: mongodb } }
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7
+          ports: [{containerPort: 27017}]
+          envFrom: [{secretRef: {name: legal-platform-secrets}}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: legal-platform
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector: { matchLabels: { app: elasticsearch } }
+  template:
+    metadata: { labels: { app: elasticsearch } }
+    spec:
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+          ports: [{containerPort: 9200}]
+          env:
+            - {name: discovery.type, value: single-node}
+            - {name: xpack.security.enabled, value: "false"}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: otel-collector, namespace: legal-platform}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: otel-collector}}
+  template:
+    metadata: {labels: {app: otel-collector}}
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector:0.104.0
+          ports: [{containerPort: 4317}, {containerPort: 4318}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: prometheus, namespace: legal-platform}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: prometheus}}
+  template:
+    metadata: {labels: {app: prometheus}}
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.54.0
+          ports: [{containerPort: 9090}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: grafana, namespace: legal-platform}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: grafana}}
+  template:
+    metadata: {labels: {app: grafana}}
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.1.0
+          ports: [{containerPort: 3000}]
